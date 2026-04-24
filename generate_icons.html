@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Pause — Generate Icons</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0d0d12; color: #e2e8f0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 24px; }
+    h1   { font-size: 22px; letter-spacing: -.3px; }
+    p    { color: #64748b; font-size: 14px; }
+    .previews { display: flex; align-items: flex-end; gap: 20px; }
+    canvas { border-radius: 24%; box-shadow: 0 0 20px rgba(99,102,241,0.4); }
+    button { padding: 12px 32px; background: linear-gradient(135deg,#6366f1,#818cf8); border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button:hover { filter: brightness(1.1); }
+    .done { color: #34d399; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Pause — Icon Generator</h1>
+  <p>Click the button to generate icon PNG files for the extension.</p>
+  <div class="previews" id="previews"></div>
+  <button onclick="generate()">Generate &amp; Download Icons</button>
+  <p id="status"></p>
+
+  <script>
+    const SIZES = [16, 48, 128];
+
+    function drawIcon(size) {
+      const c   = document.createElement('canvas');
+      c.width   = size;
+      c.height  = size;
+      const ctx = c.getContext('2d');
+      const s   = size;
+
+      // Background
+      const grad = ctx.createLinearGradient(0, 0, s, s);
+      grad.addColorStop(0, '#1e1b4b');
+      grad.addColorStop(1, '#0d0d12');
+      ctx.fillStyle = grad;
+      roundRect(ctx, 0, 0, s, s, s * 0.22);
+      ctx.fill();
+
+      // Border glow
+      ctx.strokeStyle = 'rgba(165,180,252,0.4)';
+      ctx.lineWidth   = Math.max(1, s * 0.03);
+      roundRect(ctx, ctx.lineWidth / 2, ctx.lineWidth / 2, s - ctx.lineWidth, s - ctx.lineWidth, s * 0.22);
+      ctx.stroke();
+
+      // Pause bars
+      const barW  = s * 0.16;
+      const barH  = s * 0.48;
+      const barR  = barW / 2;
+      const yOff  = (s - barH) / 2;
+      const xMid  = s / 2;
+      const gap   = barW * 0.6;
+
+      const barGrad = ctx.createLinearGradient(0, yOff, 0, yOff + barH);
+      barGrad.addColorStop(0, '#c7d2fe');
+      barGrad.addColorStop(1, '#6366f1');
+
+      ctx.fillStyle = barGrad;
+
+      // Left bar
+      roundRect(ctx, xMid - gap / 2 - barW, yOff, barW, barH, barR);
+      ctx.fill();
+
+      // Right bar
+      roundRect(ctx, xMid + gap / 2, yOff, barW, barH, barR);
+      ctx.fill();
+
+      return c;
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    // Preview on load
+    window.onload = () => {
+      const wrap = document.getElementById('previews');
+      SIZES.slice().reverse().forEach(size => {
+        const c = drawIcon(size);
+        c.title = `${size}x${size}`;
+        wrap.appendChild(c);
+      });
+    };
+
+    function generate() {
+      let count = 0;
+      SIZES.forEach(size => {
+        const c = drawIcon(size);
+        c.toBlob(blob => {
+          const a = document.createElement('a');
+          a.href     = URL.createObjectURL(blob);
+          a.download = `icon${size}.png`;
+          a.click();
+          count++;
+          if (count === SIZES.length) {
+            document.getElementById('status').textContent =
+              '✓ Downloaded! Move the 3 PNG files into the icons/ folder, then load the extension.';
+          }
+        }, 'image/png');
+      });
+    }
+  </script>
+</body>
+</html>

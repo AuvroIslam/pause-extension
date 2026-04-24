@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Pause",
+  "version": "2.0.0",
+  "description": "Stop rushing. Think first. AI-powered prompt clarification.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://pause-proxy.vercel.app/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "Pause — Think before you prompt"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://grok.com/*",
+        "https://x.ai/*",
+        "https://gemini.google.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://www.perplexity.ai/*",
+        "https://chat.mistral.ai/*",
+        "https://poe.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
