@@ -30,6 +30,10 @@
     'copilot.microsoft.com': { name: 'Microsoft Copilot', profile: 'Apply Microsoft Copilot best practices: (1) Set clear Goal, Context, Source, Expectation (GCSE structure). (2) Be concise and task-oriented — one clear ask per prompt. (3) Specify output format: action items, email draft, summary table, meeting agenda. (4) Add business context (role, team, deadline) to get work-appropriate output. (5) Reference specific documents or data sources when available.' },
     // Source: docs.mistral.ai/guides/prompting-capabilities
     'chat.mistral.ai': { name: 'Mistral', profile: 'Apply Mistral best practices: (1) Use a clear system-style opener: "You are a [role]. Your task is to [task].". (2) Be unambiguous — Mistral follows instructions literally, so vague wording produces vague output. (3) Specify output format explicitly (JSON schema, markdown table, numbered list, prose paragraphs). (4) For code tasks, state language, version, and style guide. (5) Multilingual instructions are fine — match the language of the desired output.' },
+    // Source: api-docs.deepseek.com and community prompting guidance
+    'chat.deepseek.com': { name: 'DeepSeek', profile: 'Apply DeepSeek best practices: (1) State the task clearly and provide complete context in the prompt. (2) Specify output structure explicitly (bullets, table, JSON, or sections). (3) Include constraints like length, tone, and must-include points. (4) For technical prompts, include stack/version and expected behavior. (5) Ask for concise reasoning and a final answer format line.' },
+    'deepseek.com': { name: 'DeepSeek', profile: 'Apply DeepSeek best practices: (1) State the task clearly and provide complete context in the prompt. (2) Specify output structure explicitly (bullets, table, JSON, or sections). (3) Include constraints like length, tone, and must-include points. (4) For technical prompts, include stack/version and expected behavior. (5) Ask for concise reasoning and a final answer format line.' },
+    'www.deepseek.com': { name: 'DeepSeek', profile: 'Apply DeepSeek best practices: (1) State the task clearly and provide complete context in the prompt. (2) Specify output structure explicitly (bullets, table, JSON, or sections). (3) Include constraints like length, tone, and must-include points. (4) For technical prompts, include stack/version and expected behavior. (5) Ask for concise reasoning and a final answer format line.' },
     // Source: poe.com/about and multi-model prompt patterns
     'poe.com': { name: 'Poe', profile: 'Apply Poe multi-model best practices: (1) Make the prompt fully self-contained — no implicit context. (2) State role, task, constraints, and output format explicitly since different underlying models are available. (3) Avoid model-specific syntax (no XML tags, no triple-quote delimiters) to stay portable. (4) Specify the exact output structure with an example if possible. (5) Keep instructions short and unambiguous.' },
   };
@@ -325,22 +329,53 @@
 
   const BTN_SIZE = 36;
 
+  function isDeepSeekHost(hostname) {
+    return hostname === 'chat.deepseek.com' || hostname === 'deepseek.com' || hostname === 'www.deepseek.com';
+  }
+
+  // Gemini's editable input can live inside <rich-textarea> shadow DOM.
+  // Anchor to the host element so placement matches other assistant overlays.
+  function getVisualContainer(inputEl) {
+    const host = getHostname();
+    if (host === 'gemini.google.com') {
+      const root = inputEl && inputEl.getRootNode ? inputEl.getRootNode() : null;
+      if (root && root.host && typeof root.host.getBoundingClientRect === 'function') {
+        const rr = root.host.getBoundingClientRect();
+        if (rr.width > 0 && rr.height > 0) return root.host;
+      }
+    }
+    return findInputContainer(inputEl);
+  }
+
   function positionBtn(btn, inputEl) {
     if (!btn || !inputEl) return;
-    // Use the visual container (pill/rounded box), not the inner editable div
-    // which may have large padding causing its r.top to differ from visual top
-    const container = findInputContainer(inputEl);
+    const host = getHostname();
+    const isGemini = host === 'gemini.google.com';
+    const isDeepSeek = isDeepSeekHost(host);
+
+    // Use the visual container (pill/rounded box), not the inner editable div.
+    const container = getVisualContainer(inputEl);
     const r = container.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) return;
-    const BTN_RIGHT_OFFSET = -6;
-    const x = Math.round(r.right - BTN_SIZE - BTN_RIGHT_OFFSET);
-    const y = Math.round(Math.min(r.bottom - BTN_SIZE - 10, window.innerHeight - BTN_SIZE - 14));
+    const rightOffset = (isGemini || isDeepSeek) ? 8 : -6;
+    let x = Math.round(r.right - BTN_SIZE - rightOffset);
+    let y;
+
+    // Gemini + DeepSeek: center-right alignment better matches Grammarly's slot.
+    if (isGemini || isDeepSeek) {
+      y = Math.round(r.top + ((r.height - BTN_SIZE) / 2));
+    } else {
+      y = Math.round(Math.min(r.bottom - BTN_SIZE - 10, window.innerHeight - BTN_SIZE - 14));
+    }
+
+    x = Math.max(8, Math.min(x, window.innerWidth - BTN_SIZE - 8));
+    y = Math.max(8, Math.min(y, window.innerHeight - BTN_SIZE - 8));
     btn.style.transform = `translate(${x}px,${y}px)`;
   }
 
   function positionBadge(badge, inputEl) {
     if (!badge || !inputEl) return;
-    const container = findInputContainer(inputEl);
+    const container = getVisualContainer(inputEl);
     const r = container.getBoundingClientRect();
     if (r.width === 0) return;
     const BADGE_LEFT_OFFSET = -4;
@@ -1206,6 +1241,7 @@
   let _swWarmedUp   = false;
   let _resizeObs    = null;
   let _mutationObs  = null;
+  let _mutationRaf  = null;
   let _trackedInput = null;
 
   function reposition() {
@@ -1241,13 +1277,33 @@
       }
     }
 
-    // MutationObserver: catches SPA route changes and DOM-injected layout shifts
+    // MutationObserver: catches SPA route changes and DOM-injected layout shifts.
+    // subtree:true is required for ChatGPT/Claude where the input is deep in the React tree.
+    // RAF-throttled so streaming responses don't trigger per-mutation overhead.
     if (_mutationObs) _mutationObs.disconnect();
-    _mutationObs = new MutationObserver(reposition);
-    _mutationObs.observe(document.body, { childList: true, subtree: false, attributes: false });
+    _mutationObs = new MutationObserver(() => {
+      if (_mutationRaf) return;
+      _mutationRaf = requestAnimationFrame(() => {
+        _mutationRaf = null;
+        if (!_trackedInput || !document.contains(_trackedInput)) {
+          tick(); // input was removed from DOM (SPA nav) — re-detect immediately
+        } else {
+          reposition();
+        }
+      });
+    });
+    _mutationObs.observe(document.body, { childList: true, subtree: true, attributes: false });
   }
 
   function tick() {
+    // If the tracked input was removed from the DOM (SPA navigation), reset so findAIInput() re-detects
+    if (_trackedInput && !document.contains(_trackedInput)) {
+      _trackedInput = null;
+      if (_resizeObs)   { _resizeObs.disconnect();  _resizeObs   = null; }
+      if (_mutationObs) { _mutationObs.disconnect(); _mutationObs = null; }
+      if (!state.active) state.inputEl = null;
+    }
+
     const input = findAIInput();
     const btn   = state.pauseBtn;
     const badge = state.scoreBadge;
@@ -1305,10 +1361,14 @@
     // Keepalive: reset MV3 service worker idle timer every 20s while panel is open
     setInterval(() => { if (state.active) chrome.runtime.sendMessage({ type: 'PING' }); }, 20000);
 
-    // Slow tick: only needed for initial input detection and SPA navigation
+    // Slow tick: only needed for initial input detection and SPA navigation.
+    // Extra early shots cover ChatGPT's lazy React render (textarea can take 2–3 s to appear).
     setInterval(tick, 800);
-    setTimeout(tick, 300);
+    setTimeout(tick,  100);
+    setTimeout(tick,  300);
+    setTimeout(tick,  800);
     setTimeout(tick, 1500);
+    setTimeout(tick, 3000);
   }
 
   if (document.readyState === 'loading') {

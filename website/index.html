@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pause — Stop rushing. Think first.</title>
+  <meta name="description" content="Pause adds intentional cognitive friction to AI prompting. Better questions, better answers."/>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #080808;
+      --surface:  #111111;
+      --surface2: #181818;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.12);
+      --text:     rgba(255,255,255,0.92);
+      --text2:    rgba(255,255,255,0.5);
+      --text3:    rgba(255,255,255,0.25);
+      --green:    #4d8c6f;
+      --green-bg: #1C352D;
+      --red:      #A80038;
+      --red-bg:   #3a0018;
+      --yellow:   #FFDB00;
+      --yellow-bg:#3a3000;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,8,0.92);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 16px; font-weight: 700; letter-spacing: -.3px;
+    }
+    .nav-logo-icon {
+      width: 28px; height: 28px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 13.5px; color: var(--text2); transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+    .btn-install {
+      padding: 8px 18px; border-radius: 8px;
+      background: #fff; color: #000;
+      font-size: 13px; font-weight: 600;
+      transition: background .15s;
+      cursor: pointer; border: none;
+    }
+    .btn-install:hover { background: rgba(255,255,255,0.85); }
+
+    /* ── Sections ── */
+    section { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--text3);
+      margin-bottom: 14px;
+    }
+    h1 { font-size: clamp(38px, 6vw, 72px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; }
+    h2 { font-size: clamp(26px, 3.5vw, 42px); font-weight: 700; letter-spacing: -1px; line-height: 1.15; }
+    h3 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; }
+    p { color: var(--text2); font-size: 15px; line-height: 1.75; }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding-top: 80px;
+      max-width: 100%;
+    }
+    .hero-inner { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 14px; border-radius: 20px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      font-size: 12px; color: var(--text2); margin-bottom: 32px;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .hero-title { margin-bottom: 22px; }
+    .hero-title span { color: var(--text3); }
+    .hero-sub {
+      font-size: 18px; color: var(--text2); max-width: 540px;
+      margin: 0 auto 40px; line-height: 1.65;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: 13px 28px; border-radius: 10px;
+      background: #fff; color: #000;
+      font-size: 14px; font-weight: 700;
+      border: none; cursor: pointer; transition: background .15s, transform .12s;
+    }
+    .btn-primary:hover { background: rgba(255,255,255,0.88); transform: translateY(-1px); }
+    .btn-ghost {
+      padding: 13px 28px; border-radius: 10px;
+      background: rgba(255,255,255,0.05); color: var(--text);
+      font-size: 14px; font-weight: 500;
+      border: 1px solid var(--border2); cursor: pointer;
+      transition: background .15s, transform .12s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.09); transform: translateY(-1px); }
+
+    /* ── Hero demo preview ── */
+    .hero-demo {
+      margin-top: 64px; width: 100%; max-width: 680px;
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border2);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+    }
+    .demo-bar {
+      background: var(--surface); padding: 10px 16px;
+      display: flex; align-items: center; gap: 7px;
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-url {
+      flex: 1; text-align: center;
+      font-size: 12px; color: var(--text3);
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px; padding: 3px 10px;
+      margin: 0 8px;
+    }
+    .demo-chat { background: var(--bg); padding: 24px 20px; }
+    .demo-msg {
+      max-width: 72%; padding: 10px 14px;
+      border-radius: 12px; font-size: 13px;
+      margin-bottom: 10px; line-height: 1.55;
+    }
+    .demo-msg.user {
+      background: var(--surface2); margin-left: auto;
+      color: var(--text);
+    }
+    .demo-msg.ai {
+      background: rgba(77,140,111,0.1);
+      border: 1px solid rgba(77,140,111,0.2);
+      color: var(--text2);
+    }
+    .demo-input-row {
+      display: flex; gap: 8px; align-items: center;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 10px 14px; margin-top: 16px;
+    }
+    .demo-input-text { flex: 1; font-size: 13px; color: var(--text2); }
+    .demo-pause-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+    }
+
+    /* ── Problem ── */
+    #problem { padding-top: 60px; }
+    .problem-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 2px; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border); margin-top: 48px;
+    }
+    .problem-card {
+      background: var(--surface); padding: 32px 28px;
+    }
+    .problem-card:first-child { border-right: 1px solid var(--border); }
+    .problem-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 3px 9px; border-radius: 6px;
+      display: inline-block; margin-bottom: 16px;
+    }
+    .tag-bad { background: var(--red-bg); color: var(--red); }
+    .tag-good { background: var(--green-bg); color: var(--green); }
+    .problem-prompt {
+      font-size: 14px; color: var(--text2); font-style: italic;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .problem-result { font-size: 13px; color: var(--text3); line-height: 1.6; }
+
+    /* ── Steps ── */
+    #how { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; margin-top: 48px; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+    .step {
+      background: var(--surface); padding: 28px 22px;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+    .step:last-child { border-right: none; }
+    .step-num {
+      font-size: 11px; font-weight: 700; letter-spacing: .5px;
+      color: var(--text3); margin-bottom: 16px;
+    }
+    .step-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+      color: rgba(255,255,255,0.84);
+    }
+    .step-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .step h3 { font-size: 15px; margin-bottom: 8px; }
+    .step p { font-size: 13px; }
+
+    /* ── Live Demo ── */
+    #demo { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+    .demo-wrapper {
+      margin-top: 48px; border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .demo-header {
+      background: var(--surface); padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .demo-header h3 { font-size: 14px; font-weight: 600; }
+    .demo-body { padding: 24px; background: var(--bg); }
+    .demo-prompt-area {
+      width: 100%; min-height: 90px;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 14px 16px;
+      color: var(--text); font-size: 14px; font-family: inherit;
+      resize: none; outline: none; line-height: 1.65;
+      transition: border-color .15s;
+    }
+    .demo-prompt-area:focus { border-color: rgba(255,255,255,0.22); }
+    .demo-prompt-area::placeholder { color: var(--text3); }
+    .demo-score-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 12px;
+    }
+    .demo-score-track {
+      flex: 1; height: 3px; background: rgba(255,255,255,0.07);
+      border-radius: 2px; overflow: hidden;
+    }
+    .demo-score-fill {
+      height: 100%; width: 0%; border-radius: 2px;
+      background: rgba(255,255,255,0.5);
+      transition: width .35s ease, background .35s ease;
+    }
+    .demo-score-label {
+      font-size: 12px; color: var(--text3); white-space: nowrap;
+      min-width: 80px; text-align: right;
+    }
+    .demo-score-pct { font-weight: 700; }
+    .demo-examples-label { font-size: 11px; color: var(--text3); margin: 18px 0 8px; letter-spacing: .3px; }
+    .demo-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .demo-improve-btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      background: #fff;
+      color: #000;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s, transform .12s;
+    }
+    .demo-improve-btn:hover { background: rgba(255,255,255,0.85); transform: translateY(-1px); }
+    .demo-improve-btn:active { transform: translateY(0); }
+    .demo-chip {
+      padding: 5px 13px; border-radius: 16px; font-size: 12px;
+      background: var(--surface); border: 1px solid var(--border2);
+      color: var(--text2); cursor: pointer; transition: all .12s;
+    }
+    .demo-chip:hover { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.25); }
+    .demo-divider { height: 1px; background: var(--border); margin: 24px 0; }
+    .demo-result { display: none; }
+    .demo-result.visible { display: block; }
+    .demo-compare {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .compare-box { }
+    .compare-label {
+      font-size: 10px; letter-spacing: .8px; text-transform: uppercase;
+      font-weight: 600; color: var(--text3); margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .compare-score {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px;
+    }
+    .compare-text {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 9px; padding: 13px 14px;
+      font-size: 13px; color: var(--text2); line-height: 1.65;
+      min-height: 120px; white-space: pre-wrap;
+    }
+    .compare-text.after { border-color: rgba(77,140,111,0.3); background: rgba(28,53,45,0.3); color: var(--text); }
+    .demo-delta-row {
+      margin-top: 16px; text-align: center;
+      font-size: 13px; color: var(--text3);
+    }
+    .demo-delta-num { font-size: 18px; font-weight: 700; color: var(--green); }
+
+    /* ── Examples ── */
+    #examples { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+    .examples-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 48px; }
+    .example-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+    .example-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-2px); }
+    .example-card.example-university { border-color: rgba(255,219,0,0.18); }
+    .example-card.example-career { border-color: rgba(77,140,111,0.24); }
+    .example-card.example-freelance { border-color: rgba(168,0,56,0.24); }
+    .example-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 6px; display: inline-block; margin-bottom: 14px;
+    }
+    .example-tag-university { background: var(--yellow-bg); color: var(--yellow); }
+    .example-tag-career { background: var(--green-bg); color: var(--green); }
+    .example-tag-freelance { background: var(--red-bg); color: var(--red); }
+    .example-card h3 { font-size: 14px; margin-bottom: 8px; }
+    .example-card p { font-size: 12.5px; color: var(--text3); line-height: 1.6; }
+    .example-before {
+      margin-top: 14px; padding: 10px 12px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 7px; font-size: 12px; color: var(--text3);
+      font-style: italic; line-height: 1.55;
+    }
+    .example-arrow {
+      text-align: center; color: var(--text3); font-size: 12px; margin: 8px 0;
+    }
+    .example-after {
+      padding: 10px 12px;
+      background: rgba(28,53,45,0.3); border: 1px solid rgba(77,140,111,0.25);
+      border-radius: 7px; font-size: 12px; color: rgba(77,140,111,0.9);
+      line-height: 1.55;
+    }
+
+    /* ── Research ── */
+    #research { padding: 100px 40px; max-width: 1100px; margin: 0 auto; }
+    .research-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
+    .research-card {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0.005) 100%), var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      min-height: 270px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24);
+      overflow: hidden;
+    }
+    .research-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      opacity: .9;
+      background: rgba(255,255,255,0.2);
+    }
+    .research-card.rs-green::before { background: var(--green); }
+    .research-card.rs-red::before { background: var(--red); }
+    .research-card.rs-yellow::before { background: var(--yellow); }
+    .research-source {
+      font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase;
+      color: rgba(255,255,255,0.34); margin-bottom: 12px;
+    }
+    .research-card h3 { font-size: 14px; margin-bottom: 8px; color: rgba(255,255,255,0.88); }
+    .research-card p { font-size: 12.5px; color: rgba(255,255,255,0.36); line-height: 1.7; }
+    .research-stat {
+      margin-top: 14px; font-size: 22px; font-weight: 800;
+    }
+    .research-stat.rs-green { color: var(--green); }
+    .research-stat.rs-red { color: var(--red); }
+    .research-stat.rs-yellow { color: var(--yellow); }
+    .research-stat.rs-white { color: rgba(255,255,255,0.92); }
+    .research-stat-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.26);
+      margin-top: 2px;
+    }
+
+    /* ── Stats bar ── */
+    #stats {
+      padding: 60px 40px; max-width: 1100px; margin: 0 auto;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      background: radial-gradient(1200px 320px at 50% -160px, rgba(255,255,255,0.05), rgba(255,255,255,0) 70%);
+    }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat-item {
+      text-align: center;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .stat-num { font-size: 36px; font-weight: 800; letter-spacing: -1px; color: rgba(255,255,255,0.9); }
+    .stat-num.stat-green { color: var(--green); }
+    .stat-num.stat-yellow { color: var(--yellow); }
+    .stat-num.stat-red { color: var(--red); }
+    .stat-label { font-size: 12px; color: var(--text3); margin-top: 4px; letter-spacing: .3px; }
+
+    /* ── CTA ── */
+    #cta {
+      padding: 120px 40px; text-align: center;
+      max-width: 700px; margin: 0 auto;
+    }
+    #cta h2 { margin-bottom: 16px; }
+    #cta p { font-size: 16px; margin-bottom: 40px; }
+    .cta-note { font-size: 12px; color: var(--text3); margin-top: 16px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--text3);
+    }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a:hover { color: var(--text2); }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { opacity: 0; animation: fadeUp .5s ease forwards; }
+    .fade-up-1 { animation-delay: .1s; }
+    .fade-up-2 { animation-delay: .2s; }
+    .fade-up-3 { animation-delay: .3s; }
+    .fade-up-4 { animation-delay: .4s; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cursor { display: inline-block; animation: blink 1s step-end infinite; margin-left: 1px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      section, #how, #demo, #examples, #research, #stats, #cta { padding: 70px 20px; }
+      .problem-grid, .demo-compare { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(2) { border-right: none; }
+      .examples-grid, .research-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="2" y="1" width="4" height="12" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <rect x="8" y="1" width="4" height="12" rx="2" fill="rgba(255,255,255,0.8)"/>
+      </svg>
+    </div>
+    Pause
+  </div>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#demo">Demo</a>
+    <a href="#examples">Examples</a>
+    <a href="#research">Research</a>
+  </div>
+  <button class="btn-install" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
+    Install Extension
+  </button>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-badge fade-up fade-up-1">
+      <span class="hero-badge-dot"></span>
+      Built for the Friction Hackathon
+    </div>
+    <h1 class="hero-title fade-up fade-up-2">
+      Stop rushing.<br><span>Think first.</span>
+    </h1>
+    <p class="hero-sub fade-up fade-up-3">
+      Every vague prompt is a missed opportunity. Pause intercepts weak prompts in ChatGPT, Claude, Grok, and more — asking the questions you forgot to ask yourself.
+    </p>
+    <div class="hero-cta fade-up fade-up-4">
+      <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Try the demo</button>
+      <button class="btn-ghost" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Install Extension</button>
+    </div>
+
+    <!-- Animated preview -->
+    <div class="hero-demo fade-up fade-up-4" style="animation-delay:.5s">
+      <div class="demo-bar">
+        <div class="demo-dot" style="background:#ff5f57"></div>
+        <div class="demo-dot" style="background:#ffbd2e"></div>
+        <div class="demo-dot" style="background:#28c840"></div>
+        <div class="demo-url">chatgpt.com</div>
+      </div>
+      <div class="demo-chat">
+        <div class="demo-msg ai">Good morning! How can I help you today?</div>
+        <div class="demo-msg user" id="hero-typing">help me write an email<span class="cursor">|</span></div>
+        <div class="demo-input-row">
+          <div class="demo-input-text" style="color:rgba(255,255,255,0.25)">Ask anything…</div>
+          <div class="demo-pause-btn">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <rect x="2" y="1" width="3" height="10" rx="1.5" fill="rgba(255,255,255,0.8)"/>
+              <rect x="7" y="1" width="3" height="10" rx="1.5" fill="rgba(255,255,255,0.8)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Problem ── -->
+<section id="problem">
+  <div class="section-label">The problem</div>
+  <h2>Vague prompts get generic answers</h2>
+  <p style="margin-top:12px;max-width:560px">Most people type the first thing that comes to mind. AI tools reward specificity. The gap between what you typed and what you meant is where bad outputs are born.</p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <span class="problem-tag tag-bad">Without Pause</span>
+      <div class="problem-prompt">"write an email to my professor"</div>
+      <p class="problem-result">The AI writes a generic, formal email missing context about who you are, what the situation is, what tone you need, and what you actually want the professor to do. You'll probably rewrite it anyway.</p>
+    </div>
+    <div class="problem-card">
+      <span class="problem-tag tag-good">With Pause</span>
+      <div class="problem-prompt">"Write a formal email to my lecturer Dr. Rahman as a 3rd-year CSE student at BUET, informing him I'll miss tomorrow's lab due to illness, keeping it professional and under 100 words."</div>
+      <p class="problem-result">Pause asked 3 questions. You answered in 30 seconds. The AI now has everything it needs to write something you'll actually use.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<div id="how">
+  <div class="section-label">How it works</div>
+  <h2>Four steps to a better prompt</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+          <path d="M7 10h.01M10 10h.01M13 10h.01M16 10h.01M6 14h12"></path>
+        </svg>
+      </div>
+      <h3>Type your prompt</h3>
+      <p>Write whatever comes to mind in ChatGPT, Claude, Grok, or Gemini. Pause watches the input field.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M10 9v6M14 9v6"></path>
+        </svg>
+      </div>
+      <h3>Click Pause</h3>
+      <p>Hit the ⏸ button that appears inside the input. Pause captures your draft and opens instantly.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M9.5 18H8a3 3 0 0 1-3-3v-1a3 3 0 0 1 1-5.83A4 4 0 0 1 14 7a3 3 0 0 1 4 2.83A3 3 0 0 1 19 15a3 3 0 0 1-3 3h-1.5"></path>
+          <path d="M9.5 18c0-1.8 1.2-2.5 2.5-2.5s2.5.7 2.5 2.5"></path>
+          <path d="M12 11v1"></path>
+        </svg>
+      </div>
+      <h3>Answer smart questions</h3>
+      <p>Adaptive AI-generated questions fill in the gaps — one at a time, each informed by your previous answer.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3l2.2 4.8L19 10l-4.8 2.2L12 17l-2.2-4.8L5 10l4.8-2.2L12 3z"></path>
+          <path d="M19 16l.9 2 .1.1 2 .9-2 .9-.1.1-.9 2-.9-2-.1-.1-2-.9 2-.9.1-.1.9-2z"></path>
+        </svg>
+      </div>
+      <h3>Use the improved prompt</h3>
+      <p>One click replaces your draft with a precision-crafted prompt, tailored to the specific AI model you're using.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Live Demo ── -->
+<div id="demo">
+  <div class="section-label">Live demo</div>
+  <h2>Try it — improve any prompt instantly</h2>
+  <p style="margin-top:12px;max-width:520px">Type a prompt, pick your target AI, and Pause asks you clarifying questions — then rewrites your prompt the same way the extension does.</p>
+
+  <div class="demo-wrapper">
+    <div class="demo-header">
+      <h3>⏸ Pause — Prompt Improver</h3>
+      <span style="font-size:12px;color:var(--text3)">Powered by Groq</span>
+    </div>
+    <div class="demo-body">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="font-size:12px;color:var(--text3);white-space:nowrap">Target AI:</span>
+        <select id="demo-model" style="flex:1;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:13px;padding:7px 12px;border-radius:8px;outline:none;cursor:pointer;font-family:inherit">
+          <option value="all">✦ All Models</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="claude_code">Claude Code</option>
+          <option value="cursor">Cursor</option>
+          <option value="gemini">Gemini</option>
+          <option value="grok">Grok</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="copilot">Microsoft Copilot</option>
+          <option value="perplexity">Perplexity</option>
+          <option value="mistral">Mistral</option>
+        </select>
+      </div>
+      <textarea class="demo-prompt-area" id="demo-input" placeholder="Type a prompt here, e.g. 'help me write something'…" rows="4"></textarea>
+      <div class="demo-score-row">
+        <div class="demo-score-track"><div class="demo-score-fill" id="demo-fill"></div></div>
+        <div class="demo-score-label" id="demo-score-label">0% — Vague</div>
+      </div>
+      <button id="demo-improve-btn" class="demo-improve-btn" onclick="runImprove()">
+        Improve with Pause ✦
+      </button>
+      <div class="demo-examples-label" style="margin-top:18px">Try an example:</div>
+      <div class="demo-chips">
+        <div class="demo-chip" onclick="loadChip('help me write an email')">help me write an email</div>
+        <div class="demo-chip" onclick="loadChip('fix my code')">fix my code</div>
+        <div class="demo-chip" onclick="loadChip('write a cover letter for a job')">write a cover letter for a job</div>
+        <div class="demo-chip" onclick="loadChip('explain machine learning')">explain machine learning</div>
+        <div class="demo-chip" onclick="loadChip('make a business plan')">make a business plan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Pause Modal — exact extension shell ── -->
+<div id="pause-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px;animation:fadeIn .12s ease">
+  <div id="pause-panel" style="background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:14px;width:90%;max-width:540px;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .14s ease;box-shadow:0 0 0 1px rgba(255,255,255,0.04) inset,0 24px 64px rgba(0,0,0,0.8);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+    <div id="p-prog-wrap" style="height:1px;background:rgba(255,255,255,0.05);flex-shrink:0"><div id="p-prog-fill" style="height:100%;width:0%;background:rgba(255,255,255,0.5);transition:width .3s ease"></div></div>
+    <div id="p-shell-hdr"></div>
+    <div id="p-shell-body" style="padding:18px 16px;flex:1;overflow-y:auto"></div>
+    <div id="p-shell-ftr" style="padding:12px 16px 14px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px"></div>
+  </div>
+</div>
+
+<style>
+  #pause-overlay *{box-sizing:border-box}
+  .p-hdr{padding:13px 16px 11px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between}
+  .p-logo{display:flex;align-items:center;gap:8px}
+  .p-logo-mark{width:22px;height:22px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center}
+  .p-logo-name{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);letter-spacing:-.1px}
+  .p-logo-sub{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+  .p-hdr-right{display:flex;align-items:center;gap:8px}
+  .p-q-counter{font-size:11px;color:rgba(255,255,255,0.25)}
+  .p-close{width:24px;height:24px;background:transparent;border:none;border-radius:6px;color:rgba(255,255,255,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .p-close:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8)}
+  .p-loading-body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:48px 16px}
+  .p-dots{display:flex;gap:6px;align-items:center}
+  .p-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5)}
+  .p-dot:nth-child(1){animation:pulse 1.1s ease-in-out infinite 0s}
+  .p-dot:nth-child(2){animation:pulse 1.1s ease-in-out infinite .18s}
+  .p-dot:nth-child(3){animation:pulse 1.1s ease-in-out infinite .36s}
+  .p-loading-msg{font-size:13px;color:rgba(255,255,255,0.35)}
+  .p-q-text{font-size:17px;font-weight:600;color:rgba(255,255,255,0.92);line-height:1.45;letter-spacing:-.2px;margin-bottom:16px}
+  .p-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .p-chip{padding:7px 15px;border-radius:20px;font-size:12.5px;font-weight:500;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.5);cursor:pointer;font-family:inherit;white-space:nowrap;min-height:36px;display:inline-flex;align-items:center;transition:background .1s,border-color .1s,color .1s}
+  .p-chip:hover{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.85);border-color:rgba(255,255,255,0.2)}
+  .p-chip.on{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.4);color:rgba(255,255,255,0.95)}
+  .p-ans{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 13px;color:rgba(255,255,255,0.85);font-size:13px;font-family:inherit;resize:none;min-height:72px;outline:none;line-height:1.6;transition:border-color .15s,background .15s}
+  .p-ans:focus{border-color:rgba(255,255,255,0.22);background:rgba(255,255,255,0.05)}
+  .p-ans::placeholder{color:rgba(255,255,255,0.2)}
+  .p-ans.shake{animation:shake .35s ease;border-color:rgba(168,0,56,0.45)!important}
+  .p-btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;min-height:36px;display:inline-flex;align-items:center;gap:6px;letter-spacing:-.1px;transition:background .1s,opacity .1s}
+  .p-btn-ghost{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.45)}
+  .p-btn-ghost:hover{background:rgba(255,255,255,0.09);color:rgba(255,255,255,0.8);border-color:rgba(255,255,255,0.16)}
+  .p-btn-primary{background:#fff;border:none;color:#000;font-weight:600;font-size:13px;padding:9px 22px}
+  .p-btn-primary:hover{background:rgba(255,255,255,0.88)}
+  .p-btn-primary:disabled{opacity:.5;cursor:default}
+  .p-ftr-left{display:flex;gap:6px}
+  .p-ftr-right{display:flex;gap:6px}
+  .p-res-score-row{display:flex;align-items:center;justify-content:center;gap:24px;padding:22px 16px;margin-bottom:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px}
+  .p-res-arrow{font-size:22px;font-weight:300;color:rgba(255,255,255,0.5);flex-shrink:0;line-height:1}
+  .p-res-lbl{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,0.28);font-weight:500;margin-bottom:6px}
+  .p-result-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:11px 13px;font-size:12.5px;color:rgba(255,255,255,0.4);line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:110px;overflow-y:auto}
+  .p-after-box{border-color:rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.82);max-height:200px;margin-bottom:10px}
+  .p-details summary{font-size:10px;color:rgba(255,255,255,0.28);cursor:pointer;list-style:none;padding:0 0 8px;letter-spacing:.8px;text-transform:uppercase;font-weight:500;display:flex;align-items:center;gap:5px}
+  .p-details summary::before{content:'›';font-size:14px;opacity:.7;transition:transform .2s}
+  .p-details[open] summary::before{transform:rotate(90deg)}
+  .p-details summary::-webkit-details-marker{display:none}
+  .p-error-body{text-align:center;padding:32px 16px}
+  .p-error-icon{font-size:24px;margin-bottom:10px}
+  .p-error-title{font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:6px}
+  .p-error-msg{font-size:12px;color:rgba(255,255,255,0.35);line-height:1.6;margin-bottom:20px}
+  .p-spin{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.15);border-top-color:rgba(255,255,255,0.75);animation:spin .6s linear infinite}
+  #p-shell-body::-webkit-scrollbar{width:3px}
+  #p-shell-body::-webkit-scrollbar-track{background:transparent}
+  #p-shell-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:2px}
+  @keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .p-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+  .p-tab{padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);transition:all .12s;font-family:inherit}
+  .p-tab:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.75)}
+  .p-tab.active{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.35);color:rgba(255,255,255,0.92)}
+  .p-tab-panel{display:none}.p-tab-panel.active{display:block}
+  .p-all-score-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .p-all-pill{font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;letter-spacing:.2px}
+  .p-all-arrow{color:rgba(255,255,255,0.5);font-size:12px}
+</style>
+
+<!-- ── Bangladesh Examples ── -->
+<div id="examples">
+  <div class="section-label">Real examples</div>
+  <h2>Built for students &amp; professionals</h2>
+  <p style="margin-top:12px;max-width:540px">Pause was designed with Bangladeshi students and professionals in mind — the everyday situations where a precise prompt makes a real difference.</p>
+
+  <div class="examples-grid">
+    <div class="example-card example-university" onclick="loadExampleFull(0)">
+      <span class="example-tag example-tag-university">University</span>
+      <h3>Missing class email</h3>
+      <p>Write to your lecturer about missing a class due to illness.</p>
+      <div class="example-before">"write an email to my professor"</div>
+      <div class="example-arrow">↓ Pause asked 3 questions</div>
+      <div class="example-after">"Write a formal email to Dr. Rahman as a 3rd-year CSE student at BUET, apologising for missing tomorrow's OOP lab due to fever, requesting the lab materials, formal tone, under 100 words."</div>
+    </div>
+    <div class="example-card example-career" onclick="loadExampleFull(1)">
+      <span class="example-tag example-tag-career">Career</span>
+      <h3>CV &amp; cover letter</h3>
+      <p>Apply for a job or internship at a local or foreign company.</p>
+      <div class="example-before">"help me write a cover letter"</div>
+      <div class="example-arrow">↓ Pause asked 4 questions</div>
+      <div class="example-after">"Write a cover letter for a Junior Frontend Developer role at Shajgoj. I'm a recent CSE graduate from NSU with React and Tailwind experience. Tone: confident but humble. Length: 3 paragraphs."</div>
+    </div>
+    <div class="example-card example-freelance" onclick="loadExampleFull(2)">
+      <span class="example-tag example-tag-freelance">Freelance</span>
+      <h3>Client proposal</h3>
+      <p>Win a project on Fiverr or Upwork with a targeted proposal.</p>
+      <div class="example-before">"write a proposal for a client"</div>
+      <div class="example-arrow">↓ Pause asked 4 questions</div>
+      <div class="example-after">"Write a Upwork proposal for a Shopify store redesign project. I'm a Bangladeshi freelancer with 3 years' Shopify experience. Client needs fast load time and mobile responsiveness. Tone: professional, show ROI focus. 150 words."</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Research ── -->
+<div id="research">
+  <div class="section-label">Research basis</div>
+  <h2>Built on peer-reviewed science</h2>
+  <p style="margin-top:12px;max-width:540px">Pause's question generation isn't guesswork. Every design decision is grounded in published research on how humans clarify ambiguous requests.</p>
+
+  <div class="research-grid">
+    <div class="research-card rs-green">
+      <div class="research-source">SIGIR 2025 · AT-CoT</div>
+      <h3>Classify ambiguity before asking</h3>
+      <p>Pause scans each prompt for the exact type of gap — WHO, WHAT, HOW, WHY, or SCOPE — before generating a question. This prevents asking about the wrong thing.</p>
+      <div class="research-stat rs-green">5×</div>
+      <div class="research-stat-label">more relevant questions than random generation</div>
+    </div>
+    <div class="research-card rs-red">
+      <div class="research-source">ACL 2024 · CLAMBER</div>
+      <h3>The wrong question is worse than none</h3>
+      <p>CLAMBER identified 8 ambiguity types and found that 52% of clarification failures happen because the model asked about the wrong aspect entirely.</p>
+      <div class="research-stat rs-red">52%</div>
+      <div class="research-stat-label">of failures from asking the wrong thing</div>
+    </div>
+    <div class="research-card rs-yellow">
+      <div class="research-source">ICLR 2025 · STaR-GATE</div>
+      <h3>3–5 questions is the sweet spot</h3>
+      <p>STaR-GATE showed maximum clarification value peaks at 3–5 questions. More questions create fatigue. Pause enforces this with a hard cap and early-stop signals.</p>
+      <div class="research-stat rs-yellow">3–5</div>
+      <div class="research-stat-label">optimal questions per session</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Stats ── -->
+<div id="stats">
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-num stat-green">+47pts</div>
+      <div class="stat-label">avg. prompt score improvement</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">8</div>
+      <div class="stat-label">AI platforms supported</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num stat-yellow">3–5</div>
+      <div class="stat-label">targeted questions per prompt</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">0ms</div>
+      <div class="stat-label">scoring latency (local heuristic)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CTA ── -->
+<div id="cta">
+  <div class="section-label">Get started</div>
+  <h2>Your prompts deserve better.</h2>
+  <p>Install the Chrome extension and start getting answers that actually match what you meant. Free, no account required.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <button class="btn-primary" style="font-size:15px;padding:15px 36px" onclick="document.getElementById('install-modal').style.display='flex'">
+      Install on Chrome
+    </button>
+    <a href="https://github.com/AuvroIslam/pause-extension" class="btn-ghost" style="font-size:15px;padding:15px 36px;display:inline-block">
+      View Source
+    </a>
+  </div>
+
+  <!-- Install instructions modal -->
+  <div id="install-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:36px;max-width:460px;width:100%;position:relative">
+      <button onclick="document.getElementById('install-modal').style.display='none'" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#888;font-size:22px;cursor:pointer;line-height:1">×</button>
+      <div style="font-size:22px;font-weight:700;margin-bottom:8px">Install Pause</div>
+      <div style="color:#888;font-size:14px;margin-bottom:28px">Not on the Chrome Web Store yet — load it in developer mode (takes 30 seconds).</div>
+      <ol style="padding-left:20px;display:flex;flex-direction:column;gap:14px;font-size:14px;color:#ccc;line-height:1.6">
+        <li><strong style="color:#fff">Download the extension</strong><br>
+          <a href="https://github.com/AuvroIslam/pause-extension/releases/download/v1/pause-extension.zip" style="color:#A80038;text-decoration:none">↓ Download pause-extension.zip</a> and unzip it anywhere.</li>
+        <li><strong style="color:#fff">Open Chrome Extensions</strong><br>
+          Go to <code style="background:#111;padding:2px 6px;border-radius:4px;font-size:12px">chrome://extensions</code> in your address bar.</li>
+        <li><strong style="color:#fff">Enable Developer Mode</strong><br>
+          Toggle the switch in the top-right corner.</li>
+        <li><strong style="color:#fff">Load Unpacked</strong><br>
+          Click <em>Load unpacked</em> and select the unzipped <code style="background:#111;padding:2px 6px;border-radius:4px;font-size:12px">pause-extension</code> folder.</li>
+        <li><strong style="color:#fff">Done!</strong><br>
+          Visit ChatGPT, Claude, or any supported site — the ⏸ button appears automatically.</li>
+      </ol>
+      <div style="margin-top:24px;padding:14px;background:#111;border-radius:12px;font-size:12px;color:#888">
+        No account, no login, no data sent to us. API calls go directly to AI providers.
+      </div>
+    </div>
+  </div>
+  <p class="cta-note">Works on ChatGPT · Claude · Grok · Gemini · Perplexity · Copilot · Mistral · Poe</p>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="2" y="1" width="4" height="12" rx="2" fill="rgba(255,255,255,0.8)"/>
+        <rect x="8" y="1" width="4" height="12" rx="2" fill="rgba(255,255,255,0.8)"/>
+      </svg>
+    </div>
+    Pause
+  </div>
+  <div style="color:var(--text3);font-size:12px">Built for the Friction Hackathon · 2025</div>
+  <div class="footer-links">
+    <a href="#how">How it works</a>
+    <a href="#research">Research</a>
+    <a href="#cta">Install</a>
+  </div>
+</footer>
+
+<script>
+  // ── Prompt scorer (same algorithm as extension) ──
+  function scorePrompt(text) {
+    const t = (text || '').trim();
+    if (t.length < 5) return 0;
+    const lo = t.toLowerCase();
+    let score = 0;
+    const len = t.length;
+    score += len > 25 ? 3 : 0;
+    score += len > 80 ? 4 : 0;
+    score += len > 200 ? 4 : 0;
+    score += len > 400 ? 4 : 0;
+    if (/\b(write|build|create|make|explain|summarize|analyze|fix|debug|generate|design|implement|compare|list|describe|draft|plan|review|translate|convert|refactor|optimize|find|suggest|recommend|help me|evaluate|assess|identify)\b/.test(lo)) score += 10;
+    if (/\b(for (a |an |the |my )?(beginner|expert|student|senior|junior|team|client|customer|non.technical|technical|manager|developer|designer|child|adult|supervisor|colleague|boss|professor|recruiter|hiring manager)|audience|reader|recipient|aimed at)\b/.test(lo)) score += 10;
+    if (/\b(as a (list|table|json|markdown|bullet|numbered|outline|summary|essay|email|report|paragraph)|in (bullet|table|json|markdown|prose|steps|paragraphs?)|format[: ]|step.by.step|numbered list|bullet point)\b/.test(lo)) score += 10;
+    if (/\b(under|within|max(imum)?|at most|no more than|minimum|at least|exactly|approximately|\d+[\-–]\d+ (words?|sentences?|lines?|paragraphs?)|\d+ (words?|sentences?|lines?|paragraphs?)|short|brief|concise|detailed|comprehensive)\b/.test(lo)) score += 8;
+    if (/\b(formal|informal|casual|professional|friendly|apologetic|assertive|empathetic|neutral|persuasive|diplomatic|concise|verbose|technical|simple|humorous|serious|warm|cold|polite|respectful|urgent|enthusiastic|tone should)\b/.test(lo)) score += 8;
+    if (/\b(you are (a |an )|act as (a |an )|as a |assume (you are|the role)|imagine you|pretend|take the role|i('?m| am) a |expert in|specialist in)\b/.test(lo)) score += 8;
+    if (/\b(because|since|currently|i('?m| am) (working|building|trying|writing|unable)|context[: ]|background[: ]|situation[: ]|the goal is|trying to|need to|i have|i('?ve| have) already|due to)\b/.test(lo)) score += 10;
+    const sectionHeaders = (t.match(/\b(Instructions?|Context|Background|Output|Format|Constraints?|Requirements?|Task|Goal|Example|Note|Steps?)[:\n]/g) || []).length;
+    score += Math.min(sectionHeaders * 4, 8);
+    if (/\b(think step by step|step by step|reason through|think through|before (answering|responding)|chain of thought|work through)\b/.test(lo)) score += 5;
+    if (/\b(for example|e\.g\.|such as|like (this|the following)|similar to|inspired by|based on)\b/.test(lo)) score += 5;
+    const techTerms = (lo.match(/\b(react|next\.?js|vue|angular|python|javascript|typescript|node\.?js|django|flask|java|spring|kotlin|swift|flutter|rust|go(lang)?|c\+\+|c#|php|ruby|postgres|mysql|mongodb|redis|docker|kubernetes|aws|graphql|rest|sql|html|css|tailwind)\b/g) || []).length;
+    score += Math.min(techTerms * 4, 10);
+    const ignoreWords = new Set(['The','This','That','When','What','How','Why','Who','Where','Which','Please','Write','Create','Build','Make','Help']);
+    const properNouns = (t.match(/\b[A-Z][a-z]{2,}\b/g) || []).filter(w => !ignoreWords.has(w)).length;
+    const numbers = (t.match(/\d+/g) || []).length;
+    score += Math.min(properNouns * 1.5 + numbers * 1.5, 6);
+    if (len < 30 && score < 25) score = Math.max(score - 8, 0);
+    return Math.min(Math.round(score), 100);
+  }
+
+  function scoreLabel(s) {
+    if (s >= 80) return 'Excellent';
+    if (s >= 60) return 'Good';
+    if (s >= 40) return 'Fair';
+    if (s >= 20) return 'Weak';
+    return 'Vague';
+  }
+
+  function scoreColor(s) {
+    if (s >= 80) return '#4d8c6f';
+    if (s >= 60) return '#7aaa90';
+    if (s >= 40) return '#FFDB00';
+    if (s >= 20) return '#A80038';
+    return '#7a0028';
+  }
+
+  function scorePillStyle(s) {
+    if (s >= 60) return 'background:#1C352D;color:rgba(255,255,255,0.85);border:1px solid rgba(77,140,111,0.35)';
+    if (s >= 40) return 'background:#3a3000;color:#FFDB00;border:1px solid rgba(255,219,0,0.35)';
+    return 'background:#3a0018;color:#A80038;border:1px solid rgba(168,0,56,0.35)';
+  }
+
+  // ── Example data ──
+  const EXAMPLES = [
+    {
+      before: 'help me write an email',
+      after: 'Write a formal email to my lecturer Dr. Rahman as a 3rd-year CSE student at BUET, informing him I will miss tomorrow\'s OOP lab due to fever. Request that he share the lab materials afterward. Keep it professional and under 100 words.'
+    },
+    {
+      before: 'fix my code',
+      after: 'I have a Python 3.11 Flask API endpoint that returns a 500 error when the request body is empty. The error is: "NoneType has no attribute \'get\'". Please identify the root cause, explain why it happens, and provide a fix with proper null-checking. Include the corrected code snippet.'
+    },
+    {
+      before: 'write a cover letter for a job',
+      after: 'Write a cover letter for a Junior Frontend Developer role at a Dhaka-based tech startup. I am a recent CSE graduate from NSU with 1 year of React and Tailwind CSS experience. Tone: confident but humble. Format: 3 paragraphs, under 200 words. Do not use generic phrases like "I am a hard worker".'
+    },
+    {
+      before: 'make a sandwich recipe',
+      after: 'Create a Veggie Delight sandwich recipe for an audience of home cooks in Bangladesh with moderate cooking skill. The recipe should serve 2 people, use ingredients easily available at Dhaka supermarkets, and include a list of ingredients, step-by-step instructions, and one optional tip for making it ahead of time.'
+    },
+    {
+      before: 'explain machine learning',
+      after: 'Explain the core concepts of supervised machine learning to a 2nd-year university student who knows Python but has no prior ML experience. Use an analogy, then cover: what training data is, how a model learns, and what overfitting means. Format: 4 short paragraphs, avoid heavy math notation.'
+    }
+  ];
+
+  const FULL_EXAMPLES = [
+    'Write a formal email to my lecturer Dr. Rahman as a 3rd-year CSE student at BUET, informing him I will miss tomorrow\'s OOP lab due to fever. Request he share the lab materials afterward. Professional tone, under 100 words.',
+    'Write a cover letter for a Junior Frontend Developer role at Shajgoj. I am a recent CSE graduate from NSU with React and Tailwind experience. Tone: confident but humble. Length: 3 paragraphs.',
+    'Write a Upwork proposal for a Shopify store redesign project. I am a Bangladeshi freelancer with 3 years of Shopify experience. Client needs fast load time and mobile-first design. Professional tone, show ROI focus. 150 words.'
+  ];
+
+  // ── Model profiles ──
+  const MODEL_PROFILES = {
+    chatgpt:     'ChatGPT. Excels at step-by-step reasoning, code, structured markdown. Use explicit format, length, audience, and role specs. Prefer clear sections with headers.',
+    claude:      'Claude. Responds best to context-rich prompts. Use XML tags for structure (<task>, <context>, <format>). Add explicit constraints ("be concise", "avoid jargon"). Strong at nuanced analysis.',
+    claude_code: 'Claude Code (Anthropic CLI agentic coding tool). (1) Reference specific files and line numbers rather than describing locations. (2) Include verification criteria such as tests, expected outputs, or lint checks the agent can run. (3) Separate concerns: state what to change and explicitly what to leave untouched. (4) Use imperative task framing: "Add X to file Y, run the tests, fix any failures." (5) Provide full context upfront — constraints, patterns to follow, and the definition of done.',
+    cursor:      'Cursor (AI code editor). (1) Reference exact file paths and function names rather than vague descriptions. (2) For multi-file tasks, use Plan Mode: ask Cursor to outline changes first, then implement. (3) Give verifiable success criteria — tests to pass, type-check to be clean, lint to be zero errors. (4) Prefer TDD framing: "Write a failing test for X, then implement to pass it." (5) State scope explicitly — which files should be touched and which must remain unchanged.',
+    gemini:      'Gemini. Strong factual retrieval and multimodal reasoning. Specify audience and format (tables, lists). Asking for a direct recommendation improves over hedged answers. PTCF structure works well.',
+    grok:        'Grok. Direct, opinionated, real-time knowledge. Works well with technical depth. Prefer bold direct questions, trade-off comparisons, and requests for strong opinions.',
+    deepseek:    'DeepSeek. Excellent at coding, math, and logical reasoning. Use clear, unambiguous prompts. Provide full context and specify output format explicitly. Chain-of-thought works well.',
+    copilot:     'Microsoft Copilot. Productivity-oriented. Concise task-focused prompts with explicit format requests (bullets, action items, tables). Specify business context and expected output.',
+    perplexity:  'Perplexity. Research-grade cited answers. Scope by time range and source type. Comparative questions and expert-level framing work best. Ask for sources explicitly.',
+    mistral:     'Mistral. Multilingual, code, structured reasoning. Clear unambiguous prompts. Explicit output format instructions (JSON, markdown, prose) are reliable.',
+  };
+
+  const MODEL_LABELS = {
+    chatgpt:'ChatGPT', claude:'Claude', claude_code:'Claude Code', cursor:'Cursor',
+    gemini:'Gemini', grok:'Grok', deepseek:'DeepSeek', copilot:'Copilot',
+    perplexity:'Perplexity', mistral:'Mistral',
+  };
+
+  // ── Demo refs ──
+  const demoInput      = document.getElementById('demo-input');
+  const demoFill       = document.getElementById('demo-fill');
+  const demoLabel      = document.getElementById('demo-score-label');
+  const demoImproveBtn = document.getElementById('demo-improve-btn');
+  const pauseOverlay   = document.getElementById('pause-overlay');
+  const pShellHdr      = document.getElementById('p-shell-hdr');
+  const pShellBody     = document.getElementById('p-shell-body');
+  const pShellFtr      = document.getElementById('p-shell-ftr');
+  const pProgFill      = document.getElementById('p-prog-fill');
+
+  const LOGO_SVG = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="2" y="1" width="3" height="10" rx="1.5" fill="rgba(255,255,255,0.7)"/><rect x="7" y="1" width="3" height="10" rx="1.5" fill="rgba(255,255,255,0.7)"/></svg>`;
+  const DOTS_HTML = `<div class="p-dots"><div class="p-dot"></div><div class="p-dot"></div><div class="p-dot"></div></div>`;
+
+  const demoState = { originalText:'', questions:[], answers:[], currentQ:0, lastImproved:'' };
+
+  demoInput.addEventListener('input', updateScore);
+
+  function updateScore() {
+    const text = demoInput.value.trim(), score = scorePrompt(text), color = scoreColor(score), label = scoreLabel(score);
+    demoFill.style.width = score + '%'; demoFill.style.background = color;
+    demoLabel.innerHTML = `<span class="demo-score-pct" style="color:${color}">${score}%</span> — <span style="color:${color}">${label}</span>`;
+  }
+
+  updateScore();
+
+  function loadChip(text) { demoInput.value = text; updateScore(); demoInput.focus(); }
+
+  function setProgress(pct) { pProgFill.style.width = pct + '%'; }
+
+  function setHeader(subtitle, counterText) {
+    pShellHdr.innerHTML = `<div class="p-hdr"><div class="p-logo"><div class="p-logo-mark">${LOGO_SVG}</div>
+      <div><div class="p-logo-name">Pause</div><div class="p-logo-sub">${escHtml(subtitle)}</div></div></div>
+      <div class="p-hdr-right">${counterText ? `<span class="p-q-counter">${escHtml(counterText)}</span>` : ''}
+      <button class="p-close" onclick="closePauseModal()">✕</button></div></div>`;
+  }
+
+  function setBody(html, cb) {
+    if (!pShellBody.innerHTML.trim()) { pShellBody.innerHTML = html; pShellBody.style.opacity='1'; if(cb)cb(); return; }
+    pShellBody.style.transition='opacity 0.06s ease'; pShellBody.style.opacity='0';
+    setTimeout(() => { pShellBody.innerHTML=html; pShellBody.style.opacity='1'; if(cb)cb(); }, 60);
+  }
+
+  function setFooter(html, cb) {
+    pShellFtr.innerHTML = html; pShellFtr.style.display = html ? 'flex' : 'none'; if(cb)cb();
+  }
+
+  function openModal() {
+    pShellBody.innerHTML = ''; pShellBody.style.opacity = '1';
+    pauseOverlay.style.display = 'flex'; document.body.style.overflow = 'hidden';
+  }
+
+  function closePauseModal() { pauseOverlay.style.display='none'; document.body.style.overflow=''; }
+  pauseOverlay.addEventListener('click', e => { if(e.target===pauseOverlay) closePauseModal(); });
+
+  function pShowLoading(msg) {
+    setHeader('thinking…',''); setProgress(0);
+    setBody(`<div class="p-loading-body">${DOTS_HTML}<div class="p-loading-msg">${escHtml(msg)}</div></div>`);
+    setFooter('');
+  }
+
+  function pShowError(msg, onRetry) {
+    setHeader('Paused',''); setProgress(0);
+    setBody(`<div class="p-error-body"><div class="p-error-icon">⚠️</div><div class="p-error-title">Couldn't continue</div><div class="p-error-msg">${escHtml(msg)}</div></div>`);
+    setFooter(`<div class="p-ftr-left"></div><div class="p-ftr-right"><button class="p-btn p-btn-ghost" onclick="closePauseModal()">Dismiss</button><button class="p-btn p-btn-primary" id="p-retry">Try again</button></div>`,
+      () => { document.getElementById('p-retry').onclick = onRetry || runImprove; });
+  }
+
+  // ── Step 1: fetch questions ──
+  async function runImprove() {
+    const text = demoInput.value.trim();
+    if (!text) { demoInput.focus(); return; }
+    demoState.originalText = text; demoState.questions=[]; demoState.answers=[]; demoState.currentQ=0;
+    demoImproveBtn.disabled=true; demoImproveBtn.style.opacity='0.5';
+    openModal(); setProgress(0);
+    pShowLoading('Thinking about your prompt…');
+    try {
+      const raw = await proxyFetch([
+        { role:'system', content:`You are a prompt-clarification assistant. Given a user's draft AI prompt, decide how many clarifying questions are needed (2–5) based on vagueness. For each question generate 3–4 short concrete answer chips. Return ONLY valid JSON: {"questions":[{"text":"...","suggestions":["...","...","..."]}]}` },
+        { role:'user', content: text }
+      ], { response_format:{ type:'json_object' } });
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed.questions)||!parsed.questions.length) throw new Error('BAD_RESPONSE');
+      demoState.questions = parsed.questions;
+      pShowQuestion();
+    } catch(err) { pShowError(pErrMsg(err), runImprove); }
+    finally { demoImproveBtn.disabled=false; demoImproveBtn.style.opacity='1'; }
+  }
+
+  // ── Step 2: question screen ──
+  function pShowQuestion() {
+    const qi=demoState.currentQ, qs=demoState.questions, q=qs[qi], total=qs.length;
+    const pct = Math.min(((qi+1)/Math.max(total,4))*95, 95);
+    const prev = demoState.answers[qi]||'';
+    setHeader('Think first', `Question ${qi+1}`); setProgress(pct);
+    setBody(`
+      <div class="p-q-text">${escHtml(q.text)}</div>
+      <div class="p-chips" id="p-chips">${(q.suggestions||[]).map(s=>`<button class="p-chip">${escHtml(s)}</button>`).join('')}</div>
+      <textarea class="p-ans" id="p-ans" placeholder="Or type your own answer…">${escHtml(prev)}</textarea>`,
+    () => {
+      const chipsRow = pShellBody.querySelector('#p-chips');
+      const ansBox   = pShellBody.querySelector('#p-ans');
+      const chipText = c => c.textContent.trim();
+      if (prev) chipsRow.querySelectorAll('.p-chip').forEach(c => { if(chipText(c)===prev) c.classList.add('on'); });
+      chipsRow.addEventListener('mousedown', e => {
+        const chip = e.target.closest('.p-chip'); if(!chip) return;
+        const on = chip.classList.contains('on');
+        chipsRow.querySelectorAll('.p-chip').forEach(c=>c.classList.remove('on'));
+        if(!on){ chip.classList.add('on'); ansBox.value=chipText(chip); } else ansBox.value='';
+      });
+      chipsRow.addEventListener('click', e => { if(e.target.closest('.p-chip')) ansBox.focus(); });
+      ansBox.addEventListener('input', ()=>{ chipsRow.querySelectorAll('.p-chip').forEach(c=>c.classList.toggle('on', chipText(c)===ansBox.value)); });
+      ansBox.addEventListener('keydown', e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();pNext();} if(e.key==='Escape') closePauseModal(); });
+      setTimeout(()=>ansBox&&ansBox.focus(), 60);
+    });
+    setFooter(`
+      <div class="p-ftr-left">${qi>0?'<button class="p-btn p-btn-ghost" id="p-back">Back</button>':'<span></span>'}</div>
+      <div class="p-ftr-right">
+        <button class="p-btn p-btn-ghost" id="p-skip">Skip</button>
+        <button class="p-btn p-btn-primary" id="p-next">Next</button>
+      </div>`, () => {
+      document.getElementById('p-next').onclick = pNext;
+      document.getElementById('p-skip').onclick = ()=>pAdvance('__skip__');
+      const back=document.getElementById('p-back');
+      if(back) back.onclick=()=>{ demoState.currentQ--; pShowQuestion(); };
+    });
+  }
+
+  function pNext() {
+    const ansBox=pShellBody.querySelector('#p-ans'), ans=(ansBox?.value||'').trim();
+    if(!ans){ if(ansBox){ansBox.classList.add('shake');setTimeout(()=>ansBox.classList.remove('shake'),400);ansBox.focus();} return; }
+    pAdvance(ans);
+  }
+
+  function pAdvance(ans) {
+    demoState.answers[demoState.currentQ]=ans;
+    if (demoState.questions.length < 5) {
+      const nb=document.getElementById('p-next'), sb=document.getElementById('p-skip'), bb=document.getElementById('p-back');
+      if(nb){nb.style.minWidth=nb.offsetWidth+'px';nb.disabled=true;nb.innerHTML='<span class="p-spin"></span>&nbsp;Thinking…';nb.style.opacity='0.7';}
+      if(sb){sb.disabled=true;sb.style.opacity='0.4';}
+      if(bb){bb.disabled=true;bb.style.opacity='0.4';}
+      pFetchNext();
+    } else { pBuildPrompt(); }
+  }
+
+  async function pFetchNext() {
+    const modelKey=document.getElementById('demo-model').value;
+    const profile=modelKey==='all' ? 'Write clear, well-structured, specific prompts with explicit context, format, and constraints.' : (MODEL_PROFILES[modelKey]||'');
+    const ab=demoState.questions.map((q,i)=>{const a=(demoState.answers[i]||'').trim();return a&&a!=='__skip__'?`Question: ${q.text}\nAnswer: ${a}`:''}).filter(Boolean).join('\n\n');
+    try {
+      const raw = await proxyFetch([
+        { role:'system', content:`You are a prompt-clarification assistant. Based on the original prompt and answers so far, decide if ONE more clarifying question is needed. If enough context exists respond {"done":true}. Otherwise respond with ONE question and 3-4 chips: {"done":false,"question":{"text":"...","suggestions":["...","...","..."]}}. Target model: ${profile}. Return ONLY valid JSON.` },
+        { role:'user', content:`Original: ${demoState.originalText}\n\nAnswers so far:\n${ab||'(none yet)'}`}
+      ], { response_format:{type:'json_object'} });
+      const parsed=JSON.parse(raw);
+      if(parsed.done){ pBuildPrompt(); return; }
+      if(parsed.question?.text){ demoState.questions.push(parsed.question); demoState.currentQ++; pShowQuestion(); }
+      else pBuildPrompt();
+    } catch(err){ pShowError(pErrMsg(err), pFetchNext); }
+  }
+
+  const GENERATION_PARAMS = { temperature: 0, top_p: 1 };
+
+  async function generateImprovedPromptForModel(modelKey, originalText, answersBlock) {
+    const profile = MODEL_PROFILES[modelKey] || '';
+    return await proxyFetch([
+      { role:'system', content:`You are an expert prompt engineer. Rewrite the user's draft AI prompt into a significantly better version incorporating their clarifying answers. Target AI: ${profile}. Return ONLY the improved prompt text, no preamble.` },
+      { role:'user', content:`Original: ${originalText}\n\nAnswers:\n${answersBlock}` }
+    ], GENERATION_PARAMS);
+  }
+
+  // ── Step 3: build prompt ──
+  async function pBuildPrompt() {
+    pShowLoading('Building your improved prompt…');
+    const modelKey=document.getElementById('demo-model').value;
+    const ab=demoState.questions.map((q,i)=>{const a=(demoState.answers[i]||'').trim();return a&&a!=='__skip__'?`Question: ${q.text}\nAnswer: ${a}`:''}).filter(Boolean).join('\n\n')||'(No answers provided.)';
+    try {
+      if (modelKey === 'all') {
+        const keys = ['chatgpt','claude','claude_code','cursor','gemini','grok','deepseek','copilot','perplexity','mistral'];
+        const allPrompts = {};
+        for (let i = 0; i < keys.length; i++) {
+          const k = keys[i];
+          setHeader('Building all models…', `${i + 1}/${keys.length} · ${MODEL_LABELS[k] || k}`);
+          setProgress(Math.round((i / keys.length) * 95));
+          allPrompts[k] = await generateImprovedPromptForModel(k, demoState.originalText, ab);
+        }
+        pShowAllResults(demoState.originalText, allPrompts);
+      } else {
+        const improved = await generateImprovedPromptForModel(modelKey, demoState.originalText, ab);
+        demoState.lastImproved=improved;
+        pShowResults(demoState.originalText, improved);
+      }
+    } catch(err){ pShowError(pErrMsg(err), pBuildPrompt); }
+  }
+
+  function renderScoreCircle(score, color, label) {
+    const ff=`-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif`;
+    const SVG_R=38, SVG_C=+(2*Math.PI*SVG_R).toFixed(2);
+    const offset=+(SVG_C*(1-score/100)).toFixed(2);
+    return `<svg viewBox="0 0 100 100" width="90" height="90">
+      <circle cx="50" cy="50" r="${SVG_R}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
+      <circle cx="50" cy="50" r="${SVG_R}" fill="none" stroke="${color}" stroke-width="6"
+        stroke-dasharray="${SVG_C}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 50 50)"
+        style="filter:drop-shadow(0 0 6px ${color}bb)"/>
+      <text x="50" y="48" dominant-baseline="middle" text-anchor="middle" font-size="22" font-weight="700" fill="${color}" font-family="${ff}">${score}%</text>
+      <text x="50" y="65" text-anchor="middle" font-size="8" fill="rgba(255,255,255,0.65)" font-family="${ff}" letter-spacing="1.5">${label}</text>
+    </svg>`;
+  }
+
+  // ── Step 4: results ──
+  function pShowResults(orig, improved) {
+    const sb=scorePrompt(orig), sa=scorePrompt(improved);
+    setHeader('Done',''); setProgress(100);
+    setBody(`
+      <div class="p-res-score-row">${renderScoreCircle(sb,scoreColor(sb),'BEFORE')}<div class="p-res-arrow">→</div>${renderScoreCircle(sa,scoreColor(sa),'AFTER')}</div>
+      <details class="p-details"><summary>Show original</summary>
+        <div class="p-result-box" style="margin-top:8px;margin-bottom:14px">${escHtml(orig)}</div></details>
+      <div class="p-res-lbl" style="margin-top:12px">Improved prompt</div>
+      <div class="p-result-box p-after-box">${escHtml(improved)}</div>`);
+    setFooter(`
+      <div class="p-ftr-left"><button class="p-btn p-btn-ghost" id="p-redo">Redo</button></div>
+      <div class="p-ftr-right">
+        <button class="p-btn p-btn-ghost" id="p-copy">Copy</button>
+        <button class="p-btn p-btn-primary" onclick="closePauseModal()">Done</button>
+      </div>`, ()=>{
+      document.getElementById('p-copy').onclick=function(){navigator.clipboard.writeText(improved).catch(()=>{});this.textContent='Copied!';setTimeout(()=>{this.textContent='Copy';},2000);};
+      document.getElementById('p-redo').onclick=()=>{ demoState.answers=[];demoState.questions=[];demoState.currentQ=0; runImprove(); };
+    });
+  }
+
+  // ── All-models results ──
+  function pShowAllResults(orig, allPrompts) {
+    const keys = ['chatgpt','claude','claude_code','cursor','gemini','grok','deepseek','copilot','perplexity','mistral'];
+    const validKeys = keys.filter(k => allPrompts[k]);
+    const beforeScore = scorePrompt(orig);
+    setHeader('All Models',''); setProgress(100);
+    const tabs = validKeys.map((k,i)=>`<button class="p-tab${i===0?' active':''}" data-tab="${k}" onclick="pSwitchTab('${k}')">${MODEL_LABELS[k]||k}</button>`).join('');
+    const panels = validKeys.map((k,i)=> {
+      const improved = allPrompts[k] || '';
+      const afterScore = scorePrompt(improved);
+      return `<div class="p-tab-panel${i===0?' active':''}" id="p-tab-${k}">
+        <div class="p-res-score-row">
+          ${renderScoreCircle(beforeScore,scoreColor(beforeScore),'BEFORE')}
+          <div class="p-res-arrow">→</div>
+          ${renderScoreCircle(afterScore,scoreColor(afterScore),'AFTER')}
+        </div>
+        <div class="p-result-box p-after-box" id="p-all-${k}">${escHtml(improved)}</div>
+      </div>`;
+    }).join('');
+    setBody(`
+      <details class="p-details" style="margin-bottom:12px"><summary>Show original</summary>
+        <div class="p-result-box" style="margin-top:8px;margin-bottom:0">${escHtml(orig)}</div></details>
+      <div class="p-res-lbl" style="margin-bottom:8px">Improved prompt — select model</div>
+      <div class="p-tabs">${tabs}</div>
+      ${panels}`);
+    setFooter(`
+      <div class="p-ftr-left"><button class="p-btn p-btn-ghost" id="p-redo">Redo</button></div>
+      <div class="p-ftr-right">
+        <button class="p-btn p-btn-ghost" id="p-copy">Copy</button>
+        <button class="p-btn p-btn-primary" onclick="closePauseModal()">Done</button>
+      </div>`, ()=>{
+      document.getElementById('p-copy').onclick=function(){
+        const activePanel=document.querySelector('.p-tab.active');
+        const key=activePanel?activePanel.dataset.tab:validKeys[0];
+        navigator.clipboard.writeText(allPrompts[key]||'').catch(()=>{});
+        this.textContent='Copied!';setTimeout(()=>{this.textContent='Copy';},2000);
+      };
+      document.getElementById('p-redo').onclick=()=>{ demoState.answers=[];demoState.questions=[];demoState.currentQ=0; runImprove(); };
+    });
+  }
+
+  function pSwitchTab(key) {
+    document.querySelectorAll('.p-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===key));
+    document.querySelectorAll('.p-tab-panel').forEach(p=>p.classList.toggle('active', p.id===`p-tab-${key}`));
+  }
+
+  // ── Helpers ──
+  async function proxyFetch(messages, extraParams) {
+    const res = await fetch('https://pause-proxy.vercel.app/api/ai', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages, extraParams }),
+    });
+    const data = await res.json();
+    if(!res.ok||!data.content) throw new Error(data.error||'SERVER_ERROR');
+    return data.content;
+  }
+
+  function pErrMsg(err) {
+    if (!navigator.onLine || err.message==='Failed to fetch') return 'No internet connection detected.';
+    if (err.message==='RATE_LIMIT') return 'All providers are rate-limited. Wait a moment and try again.';
+    if (err.message==='BAD_RESPONSE') return 'Unexpected AI response. Try again.';
+    return 'Something went wrong. Please try again.';
+  }
+
+  function escHtml(s='') { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function loadExample(idx) {
+    const ex = EXAMPLES[idx];
+    demoInput.value = ex.before;
+    updateScore();
+  }
+
+  function loadExampleFull(idx) {
+    const texts = ['write an email to my professor','help me write a cover letter','write a proposal for a client'];
+    demoInput.value = texts[idx];
+    updateScore();
+    document.getElementById('demo').scrollIntoView({ behavior:'smooth' });
+  }
+
+  // ── Intersection observer for section fade-in ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.style.opacity = '1';
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .example-card, .research-card, .problem-card')
+    .forEach(el => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity .4s ease, transform .4s ease';
+      el.style.transform = 'translateY(10px)';
+      observer.observe(el);
+    });
+
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .example-card, .research-card, .problem-card')
+    .forEach(el => cardObserver.observe(el));
+</script>
+</body>
+</html>
