@@ -1,0 +1,17 @@
+{
+  "name": "@pause/extension-chrome",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Pause Chrome MV3 extension — adaptive prompt clarification + limit-aware AI handoff.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "dependencies": {
+    "@pause/core": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287"
+  }
+}

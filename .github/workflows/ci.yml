@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, production-rebuild]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build core
+        run: npm run build --workspace @pause/core
+
+      - name: Test core
+        run: npm test
+
+      - name: Typecheck core
+        run: npx tsc --noEmit -p packages/core/tsconfig.json
+
+      - name: Build Chrome extension
+        run: npm run build:chrome
+
+      - name: Typecheck Chrome extension
+        run: npx tsc --noEmit -p packages/extension-chrome/tsconfig.json
+
+      - name: Build VS Code extension
+        run: npm run build:vscode
+
+      - name: Typecheck VS Code extension
+        run: npx tsc --noEmit -p packages/extension-vscode/tsconfig.json
+
+      - name: Upload Chrome dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: pause-chrome-dist
+          path: packages/extension-chrome/dist

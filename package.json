@@ -1,0 +1,27 @@
+{
+  "name": "pause-monorepo",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Pause — think before you prompt. Adaptive prompt clarification + limit-aware AI handoff. Chrome + VSCode.",
+  "workspaces": [
+    "packages/core",
+    "packages/extension-chrome",
+    "packages/extension-vscode"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @pause/core && npm run build --workspace @pause/extension-chrome",
+    "build:chrome": "npm run build --workspace @pause/extension-chrome",
+    "build:vscode": "npm run build --workspace pause-vscode",
+    "test": "npm run test --workspace @pause/core",
+    "typecheck": "tsc -b packages/core packages/extension-chrome",
+    "clean": "node -e \"require('fs').rmSync('packages/extension-chrome/dist',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

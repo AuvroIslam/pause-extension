@@ -1,0 +1,105 @@
+{
+  "name": "pause-vscode",
+  "displayName": "Pause — Think & Refine Prompts",
+  "description": "Adaptive prompt clarification, scoring, and model-specific rewriting inside VS Code. Refine any rough prompt before you send it to an AI.",
+  "version": "3.0.0",
+  "publisher": "pause",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://pause-murex.vercel.app/",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "pause.refinePrompt",
+        "title": "Pause: Refine a Prompt",
+        "category": "Pause"
+      },
+      {
+        "command": "pause.refineSelection",
+        "title": "Pause: Refine Selected Text as Prompt",
+        "category": "Pause"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "pause.refinePrompt",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "pause.refineSelection",
+          "when": "editorHasSelection",
+          "group": "1_modification"
+        }
+      ]
+    },
+    "chatParticipants": [
+      {
+        "id": "pause.assistant",
+        "name": "pause",
+        "fullName": "Pause",
+        "description": "Refine your rough prompt before you send it",
+        "isSticky": true
+      }
+    ],
+    "configuration": {
+      "title": "Pause",
+      "properties": {
+        "pause.verbosity": {
+          "type": "string",
+          "enum": [
+            "concise",
+            "thorough"
+          ],
+          "default": "concise",
+          "description": "How many clarifying questions Pause asks. Concise = up to 3, thorough = up to 5."
+        },
+        "pause.proxyUrl": {
+          "type": "string",
+          "default": "https://pause-proxy.vercel.app/api/ai",
+          "description": "Endpoint Pause routes AI calls through. No API keys are stored in the extension."
+        },
+        "pause.targetModel": {
+          "type": "string",
+          "enum": [
+            "chatgpt.com",
+            "claude.ai",
+            "gemini.google.com",
+            "perplexity.ai",
+            "grok.com",
+            "chat.deepseek.com",
+            "chat.mistral.ai",
+            "poe.com"
+          ],
+          "default": "claude.ai",
+          "description": "Which AI's prompting conventions to format the improved prompt for."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@pause/core": "3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/vscode": "^1.90.0"
+  }
+}

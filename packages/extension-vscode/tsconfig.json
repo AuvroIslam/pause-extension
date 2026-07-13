@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "types": ["vscode", "node"],
+    "lib": ["ES2021"]
+  },
+  "include": ["src/**/*.ts"]
+}
