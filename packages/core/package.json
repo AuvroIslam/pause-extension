@@ -1,0 +1,20 @@
+{
+  "name": "@pause/core",
+  "version": "3.0.0",
+  "description": "Shared brain for Pause — scoring, domain detection, prompt building, handoff. Zero DOM/host dependencies.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

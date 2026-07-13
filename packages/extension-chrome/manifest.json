@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Pause",
-  "version": "2.0.0",
-  "description": "Stop rushing. Think first. AI-powered prompt clarification.",
-  "permissions": ["storage", "activeTab"],
+  "name": "Pause — Think & Handoff",
+  "version": "3.0.0",
+  "description": "Think before you prompt: adaptive clarification, live scoring, and one-click context handoff to another AI when you hit a limit.",
+  "homepage_url": "https://pause-murex.vercel.app/",
+  "permissions": ["storage"],
   "host_permissions": [
-    "https://pause-proxy.vercel.app/*"
+    "https://pause-proxy-seven.vercel.app/*"
   ],
   "icons": {
     "16": "icons/icon16.png",
@@ -18,6 +19,10 @@
       "48": "icons/icon48.png"
     },
     "default_title": "Pause — Think before you prompt"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "content_scripts": [
     {
