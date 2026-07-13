@@ -32,7 +32,9 @@ export function detectDomain(text: string): DomainInfo {
 
   // Coding — only after communication/creative ruled out; needs technical signals
   if (
-    /\b(function|class|component|api|endpoint|refactor|optimize|implement|code|script|program|algorithm|database|query|backend|frontend|full.?stack|build (a |an |the )?(app|website|tool|bot|cli|server|api|component|feature)|create (a |an |the )?(app|website|tool|bot|script|function|class|api)|develop)\b/.test(t)
+    // The `(\w+[- ]){0,4}` before each noun lets modifiers sit between the article and
+    // the noun — "build a todo app", "create an ecommerce website" — not just "build an app".
+    /\b(function|class|component|api|endpoint|refactor|optimize|implement|code|script|program|algorithm|database|query|backend|frontend|full.?stack|build (a |an |the )?(\w+[- ]){0,4}(app|website|tool|bot|cli|server|api|component|feature)|create (a |an |the )?(\w+[- ]){0,4}(app|website|tool|bot|script|function|class|api)|develop)\b/.test(t)
   ) {
     return { domain: 'coding', temperature: 0.15 };
   }

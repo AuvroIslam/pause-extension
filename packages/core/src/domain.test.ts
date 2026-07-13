@@ -32,4 +32,15 @@ describe('detectDomain', () => {
     // "email" (communication noun) must win over "api" (coding signal).
     expect(detectDomain('write an email to get an api key').domain).toBe('communication');
   });
+
+  it.each([
+    'build a todo app',
+    'build an ecommerce website',
+    'create a chat bot',
+    'build a real-time collaborative editor tool',
+  ])('detects coding when modifiers sit between the article and the noun: %j', (text) => {
+    // Regression: the pattern used to require the noun immediately after the article,
+    // so "build an app" matched but "build a todo app" fell through to 'general'.
+    expect(detectDomain(text).domain).toBe('coding');
+  });
 });

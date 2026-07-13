@@ -60,6 +60,49 @@ function signatureFor(hostname: string): LimitSignature | null {
   return LIMIT_SIGNATURES[canonicalHostname(hostname)] ?? null;
 }
 
+// Message containers across the supported sites (mirrors transcript.ts's readers) plus
+// generic fallbacks. A limit banner is page CHROME, never conversation content — so these
+// subtrees are excluded from the scan. Without this, a chat that merely *discusses* rate
+// limiting ("help me build a rate limiter", or an assistant explaining a 429) matches
+// GENERIC_PATTERNS and fires a false handoff.
+const CONVERSATION_SELECTORS = [
+  '[data-message-author-role]',
+  '[data-testid="user-message"]',
+  '[data-testid="assistant-message"]',
+  '.font-claude-message',
+  'user-query',
+  'model-response',
+  'article',
+  '[class*="message"]',
+  '[class*="turn"]',
+].join(',');
+
+const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE']);
+
+/** Visible text with conversation turns removed. Skips whole subtrees, so it stays cheap. */
+function textOutsideConversation(maxChars: number): string {
+  const parts: string[] = [];
+  const walk = (node: Element): void => {
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const t = child.nodeValue;
+        if (t && t.trim()) parts.push(t);
+        continue;
+      }
+      if (child.nodeType !== Node.ELEMENT_NODE) continue;
+      const el = child as Element;
+      if (SKIP_TAGS.has(el.tagName)) continue;
+      if (el.matches(CONVERSATION_SELECTORS)) continue; // the whole turn is skipped
+      if (el.getAttribute('aria-hidden') === 'true') continue;
+      walk(el);
+    }
+  };
+  if (document.body) walk(document.body);
+  const text = parts.join(' ');
+  // Banners sit near the composer at the bottom, so the tail is the useful part.
+  return text.length > maxChars ? text.slice(-maxChars) : text;
+}
+
 /** Cheap check: does the current DOM show this site's limit state right now? */
 export function isLimitVisible(hostname: string): boolean {
   const sig = signatureFor(hostname);
@@ -75,10 +118,7 @@ export function isLimitVisible(hostname: string): boolean {
       }
       return txt;
     }
-    // Unscoped: sample the last ~4000 chars of visible body text (limit banners
-    // sit near the composer at the bottom) to keep the regex scan cheap.
-    const body = document.body?.innerText || '';
-    return body.slice(-4000);
+    return textOutsideConversation(4000);
   };
 
   const text = scopeText();
