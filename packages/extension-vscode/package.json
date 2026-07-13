@@ -69,7 +69,7 @@
         },
         "pause.proxyUrl": {
           "type": "string",
-          "default": "https://pause-proxy.vercel.app/api/ai",
+          "default": "https://pause-proxy-seven.vercel.app/api/ai",
           "description": "Endpoint Pause routes AI calls through. No API keys are stored in the extension."
         },
         "pause.targetModel": {

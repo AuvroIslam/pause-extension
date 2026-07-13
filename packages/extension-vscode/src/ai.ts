@@ -5,7 +5,7 @@ export function getConfig(): { verbosity: Verbosity; proxyUrl: string; targetMod
   const cfg = vscode.workspace.getConfiguration('pause');
   return {
     verbosity: cfg.get<Verbosity>('verbosity', 'concise'),
-    proxyUrl: cfg.get<string>('proxyUrl', 'https://pause-proxy.vercel.app/api/ai'),
+    proxyUrl: cfg.get<string>('proxyUrl', 'https://pause-proxy-seven.vercel.app/api/ai'),
     targetModel: cfg.get<string>('targetModel', 'claude.ai'),
   };
 }

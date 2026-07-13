@@ -19,7 +19,7 @@ import type {
 } from './messages.js';
 
 // All AI calls route through the Vercel proxy — no API keys in the extension.
-const PROXY_URL = 'https://pause-proxy.vercel.app/api/ai';
+const PROXY_URL = 'https://pause-proxy-seven.vercel.app/api/ai';
 
 const callAI = createProxyClient({ proxyUrl: PROXY_URL, fetchImpl: fetch, timeoutMs: 20000 });
 
