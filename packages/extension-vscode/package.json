@@ -2,7 +2,7 @@
   "name": "pause-vscode",
   "displayName": "Pause — Think & Refine Prompts",
   "description": "Adaptive prompt clarification, scoring, and model-specific rewriting inside VS Code. Refine any rough prompt before you send it to an AI.",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "publisher": "MdNafizAhmed",
   "license": "MIT",
   "homepage": "https://pause-murex.vercel.app/",
@@ -28,10 +28,33 @@
     "onStartupFinished"
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pause",
+          "title": "Pause",
+          "icon": "media/pause.svg"
+        }
+      ]
+    },
+    "views": {
+      "pause": [
+        {
+          "id": "pause.chatView",
+          "name": "Refine a Prompt",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
+        "command": "pause.openChat",
+        "title": "Pause: Open Chat",
+        "category": "Pause"
+      },
+      {
         "command": "pause.refinePrompt",
-        "title": "Pause: Refine a Prompt",
+        "title": "Pause: Refine a Prompt (Quick Pick)",
         "category": "Pause"
       },
       {
@@ -42,7 +65,7 @@
     ],
     "keybindings": [
       {
-        "command": "pause.refinePrompt",
+        "command": "pause.openChat",
         "key": "ctrl+alt+p",
         "mac": "cmd+alt+p"
       }

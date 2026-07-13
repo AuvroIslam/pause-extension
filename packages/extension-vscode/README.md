@@ -16,11 +16,20 @@ target model's own prompting conventions.
 
 ## Usage
 
+Open the **⏸ Pause** panel from the activity bar (or the status bar item, or `Ctrl+Alt+P`)
+and type a rough prompt. The panel is a chat: it scores your prompt as you type, asks its
+clarifying questions as chat turns with clickable suggestions, and returns the rewrite with
+**Send to Chat**, **Copy**, and **Insert at cursor** buttons.
+
+Every rewrite is copied to your clipboard automatically, so pasting into any AI panel —
+including ones VS Code sandboxes, like Claude Code or Codex — is a single `Ctrl+V`.
+
 | How | What happens |
 |---|---|
-| **`Ctrl+Alt+P`** (`Cmd+Alt+P` on Mac) | Opens the refine flow — type a rough prompt, answer the questions, get a rewrite. |
-| Select text → **Pause: Refine Selected Text as Prompt** | Refines the selection in place. |
+| **⏸ Pause panel** (`Ctrl+Alt+P`) | The chat box — the main way to use Pause. |
+| Select text → **Pause: Refine Selected Text as Prompt** | Opens the panel seeded with your selection. |
 | **`@pause`** in Copilot Chat | Refines your prompt inside the chat, then hands it to the model. |
+| **Pause: Refine a Prompt (Quick Pick)** | The keyboard-only flow, if you prefer no panel. |
 
 ## Settings
 

@@ -1,21 +1,36 @@
 import * as vscode from 'vscode';
 import { makeChatHandler } from './chatParticipant.js';
+import { PauseChatViewProvider } from './chatView.js';
 import { refineAndDeliver } from './refineFlow.js';
 
 export function activate(context: vscode.ExtensionContext): void {
-  // Command: interactive refine flow (optionally seeded with text).
+  // The chat panel is the primary UI; the QuickPick flow remains for keyboard-only use.
+  const chatView = new PauseChatViewProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(PauseChatViewProvider.viewType, chatView, {
+      webviewOptions: { retainContextWhenHidden: true },
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pause.openChat', (seed?: string) => {
+      void chatView.focus(typeof seed === 'string' ? seed : undefined);
+    }),
+  );
+
+  // Command: QuickPick refine flow (optionally seeded with text).
   context.subscriptions.push(
     vscode.commands.registerCommand('pause.refinePrompt', (seed?: string) => {
       void refineAndDeliver(typeof seed === 'string' ? seed : undefined);
     }),
   );
 
-  // Command: refine the current editor selection.
+  // Command: refine the current editor selection — seeds the chat panel.
   context.subscriptions.push(
     vscode.commands.registerCommand('pause.refineSelection', () => {
       const editor = vscode.window.activeTextEditor;
       const selected = editor?.document.getText(editor.selection).trim();
-      void refineAndDeliver(selected || undefined);
+      void chatView.focus(selected || undefined);
     }),
   );
 
@@ -36,7 +51,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   status.text = '$(debug-pause) Pause';
   status.tooltip = 'Pause: refine a prompt before you send it (Ctrl+Alt+P)';
-  status.command = 'pause.refinePrompt';
+  status.command = 'pause.openChat';
   status.show();
   context.subscriptions.push(status);
 
