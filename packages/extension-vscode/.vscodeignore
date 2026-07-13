@@ -1,0 +1,9 @@
+# Everything the extension needs is bundled into dist/extension.js by esbuild,
+# so source, config, and build scripts must not ship in the .vsix.
+src/**
+build.mjs
+tsconfig.json
+node_modules/**
+**/*.map
+**/*.ts
+.vscode/**
