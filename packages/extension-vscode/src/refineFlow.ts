@@ -124,30 +124,51 @@ async function askQuestion(
   return picked;
 }
 
-/** Command entry: refine, then let the user insert / copy the result. */
+/**
+ * Drop text into VS Code's built-in chat input. Only the native chat (Copilot) can be
+ * driven this way — other agents (Claude Code, Codex, …) render their own webviews, which
+ * VS Code sandboxes, so no extension can type into them. Those rely on the clipboard.
+ */
+async function sendToChat(text: string): Promise<boolean> {
+  try {
+    await vscode.commands.executeCommand('workbench.action.chat.open', { query: text });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Command entry: refine, then let the user send / insert / paste the result. */
 export async function refineAndDeliver(seed?: string): Promise<void> {
   const improved = await runRefineFlow(seed);
   if (!improved) return;
 
+  // Always copy first: the refined prompt is the whole point of the flow, and pasting is
+  // the only way into non-native agent panels. Every path below is then a shortcut.
+  await vscode.env.clipboard.writeText(improved);
+
+  const SEND = 'Send to Chat';
   const INSERT = 'Insert at cursor';
-  const COPY = 'Copy to clipboard';
   const choice = await vscode.window.showInformationMessage(
-    'Pause improved your prompt.',
+    'Pause improved your prompt — copied, ready to paste.',
     { modal: false, detail: improved },
+    SEND,
     INSERT,
-    COPY,
   );
 
-  if (choice === COPY) {
-    await vscode.env.clipboard.writeText(improved);
-    void vscode.window.setStatusBarMessage('Pause: improved prompt copied', 3000);
+  if (choice === SEND) {
+    const sent = await sendToChat(improved);
+    if (!sent) {
+      void vscode.window.showInformationMessage(
+        'No built-in chat available — the prompt is on your clipboard, paste it into your agent.',
+      );
+    }
   } else if (choice === INSERT) {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       await editor.edit((b) => b.replace(editor.selection, improved));
     } else {
-      await vscode.env.clipboard.writeText(improved);
-      void vscode.window.showInformationMessage('No active editor — copied to clipboard instead.');
+      void vscode.window.showInformationMessage('No active editor — the prompt is on your clipboard.');
     }
   }
 }

@@ -32,6 +32,14 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
   );
 
+  // Status bar entry — the always-visible entry point, next to the other agent items.
+  const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  status.text = '$(debug-pause) Pause';
+  status.tooltip = 'Pause: refine a prompt before you send it (Ctrl+Alt+P)';
+  status.command = 'pause.refinePrompt';
+  status.show();
+  context.subscriptions.push(status);
+
   // Chat participant: @pause
   try {
     const participant = vscode.chat.createChatParticipant('pause.assistant', makeChatHandler());
