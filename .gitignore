@@ -4,3 +4,4 @@ dist/
 packages/**/dist/
 packages/extension-vscode/*.vsix
 .DS_Store
+packages/extension-chrome/*.zip
