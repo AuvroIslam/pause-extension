@@ -2,7 +2,7 @@
   "name": "pause-vscode",
   "displayName": "Pause — Think & Refine Prompts",
   "description": "Adaptive prompt clarification, scoring, and model-specific rewriting inside VS Code. Refine any rough prompt before you send it to an AI.",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "publisher": "MdNafizAhmed",
   "license": "MIT",
   "homepage": "https://pause-murex.vercel.app/",

@@ -298,8 +298,12 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
   const scoreText = document.getElementById('scoreText');
   const empty = document.getElementById('empty');
   let thinkingEl = null;
+  // The score meter describes the PROMPT. While the flow is running, the composer holds
+  // answers, not prompts — scoring those is meaningless, so the meter stays hidden.
+  let awaitingAnswer = false;
 
   const scroll = () => { log.scrollTop = log.scrollHeight; };
+  const hideMeter = () => { meter.hidden = true; };
   const clearThinking = () => { if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; } };
 
   function bubble(text, cls) {
@@ -324,7 +328,7 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
   // Live local scoring as you type (no network).
   input.addEventListener('input', () => {
     const text = input.value.trim();
-    if (!text) { meter.hidden = true; return; }
+    if (!text || awaitingAnswer) { hideMeter(); return; }
     vscode.postMessage({ type: 'score', text });
   });
 
@@ -333,7 +337,7 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
     if (text.length < 3) return;
     bubble(text, 'user');
     input.value = '';
-    meter.hidden = true;
+    hideMeter();
     go.disabled = true;
     vscode.postMessage({ type: 'start', text });
   }
@@ -345,6 +349,8 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
 
   function answer(value, label) {
     document.querySelectorAll('.chips').forEach((c) => c.remove());
+    awaitingAnswer = false;
+    hideMeter();
     bubble(label, 'user');
     vscode.postMessage({ type: 'answer', value });
   }
@@ -377,6 +383,8 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
 
     if (m.type === 'question') {
       clearThinking();
+      awaitingAnswer = true;
+      hideMeter();
       const turn = bubble(m.text);
       const meta = document.createElement('div');
       meta.className = 'meta';
@@ -419,6 +427,8 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
     if (m.type === 'result') {
       clearThinking();
       go.disabled = false;
+      awaitingAnswer = false;
+      hideMeter();
       input.placeholder = 'e.g. build a todo app\\nCtrl+Enter to refine';
 
       const turn = bubble(m.text);
@@ -447,6 +457,7 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
     if (m.type === 'error') {
       clearThinking();
       go.disabled = false;
+      awaitingAnswer = false;
       const turn = bubble(m.message);
       turn.querySelector('.bubble').classList.add('err');
       return;
@@ -455,6 +466,7 @@ export class PauseChatViewProvider implements vscode.WebviewViewProvider {
     if (m.type === 'cancelled') {
       clearThinking();
       go.disabled = false;
+      awaitingAnswer = false;
     }
   });
 </script>
